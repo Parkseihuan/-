@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퇴직금 계산 프로그램</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        
+        .readonly {
+            background-color: #f8f9fa !important;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-section {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 18px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .formula-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .formula-info h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            color: #856404;
+            font-size: 14px;
+        }
+        
+        .money {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>퇴직금 계산 프로그램</h1>
+            <p>근로기준법 및 근로자퇴직급여 보장법에 따른 퇴직금 계산</p>
+        </div>
+        
+        <div class="content">
+            <!-- 재직기간 -->
+            <div class="section">
+                <h3>📅 재직기간</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">입사일</label>
+                        <input type="text" id="startDate" placeholder="20230205 형식으로 입력" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">퇴사일</label>
+                        <input type="text" id="endDate" placeholder="20240805 형식으로 입력" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="workDays">재직일수</label>
+                        <input type="number" id="workDays" class="readonly" readonly placeholder="자동 계산됩니다">
+                    </div>
+                    <div class="form-group">
+                        <label for="threeMonthDays">퇴직일 이전 3개월간 총일수</label>
+                        <input type="number" id="threeMonthDays" class="readonly" readonly placeholder="자동 계산됩니다">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 최근 3개월 기본임금 -->
+            <div class="section">
+                <h3>💰 최근 3개월 기본임금</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="salary1">첫 번째 달 기본임금</label>
+                        <input type="text" id="salary1" placeholder="2500000 형식으로 입력">
+                    </div>
+                    <div class="form-group">
+                        <label for="salary2">두 번째 달 기본임금</label>
+                        <input type="text" id="salary2" placeholder="2500000 형식으로 입력">
+                    </div>
+                    <div class="form-group">
+                        <label for="salary3">세 번째 달 기본임금</label>
+                        <input type="text" id="salary3" placeholder="2500000 형식으로 입력">
+                    </div>
+                    <div class="form-group">
+                        <label for="bonus">상여금 (비정기수당×3/12)</label>
+                        <input type="text" id="bonus" placeholder="0 (없으면 0)">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="annualLeave">연차수당 (전학년도 연차수당×3/12)</label>
+                        <input type="text" id="annualLeave" placeholder="0 (없으면 0)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 계산 버튼 -->
+            <div style="text-align: center;">
+                <button class="calculate-btn" onclick="calculateRetirement()">퇴직금 계산하기</button>
+            </div>
+            
+            <!-- 계산 결과 -->
+            <div id="results" style="display: none;">
+                <div class="result-section">
+                    <h3 style="margin-bottom: 15px;">📊 계산 결과</h3>
+                    
+                    <div class="result-row">
+                        <span>최근 3개월 기본임금 총액 (A):</span>
+                        <span id="totalBaseSalary" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>상여금 (B):</span>
+                        <span id="totalBonus" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>연차수당 (C):</span>
+                        <span id="totalAnnualLeave" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>1일 평균임금:</span>
+                        <span id="avgDailyWage" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>평균임금 기준 퇴직금:</span>
+                        <span id="avgRetirement" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>1일 통상임금:</span>
+                        <span id="ordinaryDailyWage" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>통상임금 기준 퇴직금:</span>
+                        <span id="ordinaryRetirement" class="money">0원</span>
+                    </div>
+                    
+                    <div class="result-row">
+                        <span>최종 퇴직금:</span>
+                        <span id="finalRetirement" class="money">0원</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 계산 공식 안내 -->
+            <div class="formula-info">
+                <h4>📘 계산 공식</h4>
+                <p><strong>1일 평균임금</strong> = 최근 3개월 임금 총액 (A+B+C) ÷ 퇴직일 이전 3개월간의 총 일수</p>
+                <p><strong>1일 통상임금</strong> = (기본임금+상여금 (A+B) ÷ 209) × 8</p>
+                <p><strong>퇴직금</strong> = 재직일수 × (1일 평균임금 또는 1일 통상임금 중 큰 값)</p>
+                <p><strong>※ 소수점 첫째자리에서 올림 처리됩니다.</strong></p>
+            </div>
+            
+            <div class="note">
+                <p><strong>📌 주의사항</strong></p>
+                <p>• 기본임금: 본봉, 교통비, 식대보조금, 조교 수당 및 그 외 정기성 수당</p>
+                <p>• 평균임금과 통상임금을 모두 계산하여 더 유리한 금액으로 퇴직금 산정</p>
+                <p>• 1일 통상임금이 1일 평균임금보다 클 경우 1일 통상임금을 기준으로 퇴직금 지급</p>
+                <p>• <strong>GitHub Pages에서 정상 작동합니다.</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 후 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDateInputs();
+            setupMoneyInputs();
+        });
+
+        // 날짜 입력 설정
+        function setupDateInputs() {
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+
+            [startDate, endDate].forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // 숫자만 허용, 8자리 제한
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 8) {
+                        value = value.substring(0, 8);
+                    }
+                    e.target.value = value;
+                });
+
+                input.addEventListener('blur', function(e) {
+                    formatDateAndCalculate(e.target);
+                });
+            });
+        }
+
+        // 날짜 포맷팅 및 계산
+        function formatDateAndCalculate(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length === 8) {
+                const year = value.substring(0, 4);
+                const month = value.substring(4, 6);
+                const day = value.substring(6, 8);
+
+                // 유효한 날짜인지 확인
+                const date = new Date(year, month - 1, day);
+                if (date.getFullYear() == year && 
+                    date.getMonth() == month - 1 && 
+                    date.getDate() == day &&
+                    month >= '01' && month <= '12' &&
+                    day >= '01' && day <= '31') {
+                    
+                    input.value = `${year}-${month}-${day}`;
+                    calculateWorkDays();
+                } else {
+                    alert('올바른 날짜를 입력해주세요. (예: 20230205)');
+                    input.focus();
+                }
+            }
+        }
+
+        // 재직일수 계산
+        function calculateWorkDays() {
+            const startDateValue = document.getElementById('startDate').value;
+            const endDateValue = document.getElementById('endDate').value;
+
+            if (startDateValue.includes('-') && endDateValue.includes('-')) {
+                const start = new Date(startDateValue);
+                const end = new Date(endDateValue);
+
+                if (end >= start) {
+                    const timeDiff = end.getTime() - start.getTime();
+                    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
+                    document.getElementById('workDays').value = daysDiff;
+
+                    // 퇴직일 이전 3개월간 총일수 계산 (실제 달력 기준)
+                    const threeMonthDays = calculateThreeMonthDays(end);
+                    document.getElementById('threeMonthDays').value = threeMonthDays;
+                } else {
+                    alert('퇴사일이 입사일보다 빨을 수 없습니다.');
+                    document.getElementById('workDays').value = '';
+                    document.getElementById('threeMonthDays').value = '';
+                }
+            }
+        }
+
+        // 퇴직일 이전 3개월간 실제 달력 일수 계산
+        function calculateThreeMonthDays(endDate) {
+            let totalDays = 0;
+            const currentMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+            
+            // 퇴사일이 속한 달부터 3개월 계산
+            for (let i = 0; i < 3; i++) {
+                const year = currentMonth.getFullYear();
+                const month = currentMonth.getMonth();
+                
+                // 해당 월의 일수 계산
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                totalDays += daysInMonth;
+                
+                // 이전 달로 이동
+                currentMonth.setMonth(currentMonth.getMonth() - 1);
+            }
+            
+            return totalDays;
+        }
+
+        // 금액 입력 설정
+        function setupMoneyInputs() {
+            const moneyFields = ['salary1', 'salary2', 'salary3', 'bonus', 'annualLeave'];
+            
+            moneyFields.forEach(id => {
+                const input = document.getElementById(id);
+                input.addEventListener('input', function(e) {
+                    formatMoneyInput(e.target);
+                });
+            });
+        }
+
+        // 금액 포맷팅
+        function formatMoneyInput(input) {
+            let value = input.value.replace(/[^\d]/g, '');
+            if (value) {
+                input.value = parseInt(value).toLocaleString();
+            }
+        }
+
+        // 숫자 값 추출
+        function getNumericValue(elementId) {
+            const value = document.getElementById(elementId).value.replace(/[^\d]/g, '');
+            return parseInt(value) || 0;
+        }
+
+        // 퇴직금 계산
+        function calculateRetirement() {
+            // 입력값 검증
+            const workDays = parseInt(document.getElementById('workDays').value) || 0;
+            const threeMonthDays = parseInt(document.getElementById('threeMonthDays').value) || 0;
+            if (workDays === 0 || threeMonthDays === 0) {
+                alert('입사일과 퇴사일을 정확히 입력해주세요.');
+                return;
+            }
+
+            const salary1 = getNumericValue('salary1');
+            const salary2 = getNumericValue('salary2');
+            const salary3 = getNumericValue('salary3');
+            if (salary1 === 0 && salary2 === 0 && salary3 === 0) {
+                alert('최근 3개월 기본임금을 입력해주세요.');
+                return;
+            }
+
+            // 계산 수행
+            const totalBaseSalary = salary1 + salary2 + salary3; // A
+            const totalBonus = getNumericValue('bonus'); // B
+            const totalAnnualLeave = getNumericValue('annualLeave'); // C
+
+            // 1일 평균임금 계산
+            const totalWage = totalBaseSalary + totalBonus + totalAnnualLeave;
+            const avgDailyWage = Math.ceil(totalWage / threeMonthDays);
+            const avgRetirement = workDays * avgDailyWage;
+
+            // 1일 통상임금 계산
+            const monthlyOrdinaryWage = (totalBaseSalary + totalBonus) / 3;
+            const ordinaryDailyWage = Math.ceil((monthlyOrdinaryWage / 209) * 8);
+            const ordinaryRetirement = workDays * ordinaryDailyWage;
+
+            // 최종 퇴직금
+            const finalRetirement = Math.max(avgRetirement, ordinaryRetirement);
+
+            // 결과 표시
+            displayResults({
+                totalBaseSalary,
+                totalBonus,
+                totalAnnualLeave,
+                avgDailyWage,
+                avgRetirement,
+                ordinaryDailyWage,
+                ordinaryRetirement,
+                finalRetirement
+            });
+        }
+
+        // 결과 표시
+        function displayResults(data) {
+            document.getElementById('totalBaseSalary').textContent = formatMoney(data.totalBaseSalary);
+            document.getElementById('totalBonus').textContent = formatMoney(data.totalBonus);
+            document.getElementById('totalAnnualLeave').textContent = formatMoney(data.totalAnnualLeave);
+            
+            // 1일 평균임금과 통상임금은 소수점 둘째자리에서 내림 처리
+            document.getElementById('avgDailyWage').textContent = formatDailyWage(data.avgDailyWage);
+            document.getElementById('ordinaryDailyWage').textContent = formatDailyWage(data.ordinaryDailyWage);
+            
+            document.getElementById('avgRetirement').textContent = formatMoney(data.avgRetirement);
+            document.getElementById('ordinaryRetirement').textContent = formatMoney(data.ordinaryRetirement);
+            document.getElementById('finalRetirement').textContent = formatMoney(data.finalRetirement);
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 일반 금액 포맷팅
+        function formatMoney(amount) {
+            return Math.round(amount).toLocaleString('ko-KR') + '원';
+        }
+
+        // 일일 임금 포맷팅 (수동 문자열 생성으로 정확한 표시)
+        function formatDailyWage(amount) {
+            // 소수점 둘째자리에서 내림
+            const truncated = Math.floor(amount * 100) / 100;
+            
+            // 수동으로 문자열 포맷팅
+            const integerPart = Math.floor(truncated);
+            const decimalPart = Math.round((truncated - integerPart) * 100);
+            
+            const formattedInteger = integerPart.toLocaleString('ko-KR');
+            const formattedDecimal = decimalPart.toString().padStart(2, '0');
+            
+            return `${formattedInteger}.${formattedDecimal}원`;
+        }
+    </script>
+</body>
+</html>
