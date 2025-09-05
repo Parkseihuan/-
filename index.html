@@ -290,7 +290,7 @@
                 <p><strong>1일 평균임금</strong> = 최근 3개월 임금 총액 (A+B+C) ÷ 퇴직일 이전 3개월간의 총 일수</p>
                 <p><strong>1일 통상임금</strong> = (기본임금+상여금 (A+B) ÷ 209) × 8</p>
                 <p><strong>퇴직금</strong> = 30일 × (1일 평균임금 또는 1일 통상임금 중 큰 값)</p>
-                <p><strong>※ 소수점 첫째자리에서 올림 처리됩니다.</strong></p>
+                <p><strong>※ 소수점 둘째자리에서 내림 처리됩니다.</strong></p>
             </div>
             
             <div class="note">
@@ -298,26 +298,24 @@
                 <p>• 기본임금: 본봉, 교통비, 식대보조금, 조교 수당 및 그 외 정기성 수당</p>
                 <p>• 평균임금과 통상임금을 모두 계산하여 더 유리한 금액으로 퇴직금 산정</p>
                 <p>• 1일 통상임금이 1일 평균임금보다 클 경우 1일 통상임금을 기준으로 퇴직금 지급</p>
+                <p>• 퇴직금은 계속근로기간 1년에 대하여 30일분의 평균임금을 지급</p>
                 <p>• <strong>GitHub Pages에서 정상 작동합니다.</strong></p>
             </div>
         </div>
     </div>
 
     <script>
-        // 페이지 로드 후 초기화
         document.addEventListener('DOMContentLoaded', function() {
             setupDateInputs();
             setupMoneyInputs();
         });
 
-        // 날짜 입력 설정
         function setupDateInputs() {
             const startDate = document.getElementById('startDate');
             const endDate = document.getElementById('endDate');
 
             [startDate, endDate].forEach(input => {
                 input.addEventListener('input', function(e) {
-                    // 숫자만 허용, 8자리 제한
                     let value = e.target.value.replace(/\D/g, '');
                     if (value.length > 8) {
                         value = value.substring(0, 8);
@@ -331,7 +329,6 @@
             });
         }
 
-        // 날짜 포맷팅 및 계산
         function formatDateAndCalculate(input) {
             let value = input.value.replace(/\D/g, '');
             if (value.length === 8) {
@@ -339,7 +336,6 @@
                 const month = value.substring(4, 6);
                 const day = value.substring(6, 8);
 
-                // 유효한 날짜인지 확인
                 const date = new Date(year, month - 1, day);
                 if (date.getFullYear() == year && 
                     date.getMonth() == month - 1 && 
@@ -356,7 +352,6 @@
             }
         }
 
-        // 재직일수 계산
         function calculateWorkDays() {
             const startDateValue = document.getElementById('startDate').value;
             const endDateValue = document.getElementById('endDate').value;
@@ -370,7 +365,6 @@
                     const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
                     document.getElementById('workDays').value = daysDiff;
 
-                    // 퇴직일 이전 3개월간 총일수 계산 (실제 달력 기준)
                     const threeMonthDays = calculateThreeMonthDays(end);
                     document.getElementById('threeMonthDays').value = threeMonthDays;
                 } else {
@@ -381,28 +375,23 @@
             }
         }
 
-        // 퇴직일 이전 3개월간 실제 달력 일수 계산
         function calculateThreeMonthDays(endDate) {
             let totalDays = 0;
             const currentMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
             
-            // 퇴사일이 속한 달부터 3개월 계산
             for (let i = 0; i < 3; i++) {
                 const year = currentMonth.getFullYear();
                 const month = currentMonth.getMonth();
                 
-                // 해당 월의 일수 계산
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 totalDays += daysInMonth;
                 
-                // 이전 달로 이동
                 currentMonth.setMonth(currentMonth.getMonth() - 1);
             }
             
             return totalDays;
         }
 
-        // 금액 입력 설정
         function setupMoneyInputs() {
             const moneyFields = ['salary1', 'salary2', 'salary3', 'bonus', 'annualLeave'];
             
@@ -414,7 +403,6 @@
             });
         }
 
-        // 금액 포맷팅
         function formatMoneyInput(input) {
             let value = input.value.replace(/[^\d]/g, '');
             if (value) {
@@ -422,15 +410,12 @@
             }
         }
 
-        // 숫자 값 추출
         function getNumericValue(elementId) {
             const value = document.getElementById(elementId).value.replace(/[^\d]/g, '');
             return parseInt(value) || 0;
         }
 
-        // 퇴직금 계산
         function calculateRetirement() {
-            // 입력값 검증
             const workDays = parseInt(document.getElementById('workDays').value) || 0;
             const threeMonthDays = parseInt(document.getElementById('threeMonthDays').value) || 0;
             if (workDays === 0 || threeMonthDays === 0) {
@@ -446,68 +431,46 @@
                 return;
             }
 
-            // 계산 수행
-            const totalBaseSalary = salary1 + salary2 + salary3; // A
-            const totalBonus = getNumericValue('bonus'); // B
-            const totalAnnualLeave = getNumericValue('annualLeave'); // C
+            const totalBaseSalary = salary1 + salary2 + salary3;
+            const totalBonus = getNumericValue('bonus');
+            const totalAnnualLeave = getNumericValue('annualLeave');
 
-            // 1일 평균임금 계산
+            // 1일 평균임금 계산 (정확한 소수점 처리 - 내림)
             const totalWage = totalBaseSalary + totalBonus + totalAnnualLeave;
-            const avgDailyWage = Math.ceil(totalWage / threeMonthDays);
-            const avgRetirement = workDays * avgDailyWage;
+            const avgDailyWageExact = Math.floor((totalWage * 100) / threeMonthDays) / 100;
+            
+            // 퇴직금은 30일분으로 계산
+            const avgRetirement = Math.round(30 * avgDailyWageExact);
 
-            // 1일 통상임금 계산
+            // 1일 통상임금 계산 (정확한 소수점 처리 - 내림)
             const monthlyOrdinaryWage = (totalBaseSalary + totalBonus) / 3;
-            const ordinaryDailyWage = Math.ceil((monthlyOrdinaryWage / 209) * 8);
-            const ordinaryRetirement = workDays * ordinaryDailyWage;
+            const ordinaryDailyWageExact = Math.floor(((monthlyOrdinaryWage / 209) * 8) * 100) / 100;
+            const ordinaryRetirement = Math.round(30 * ordinaryDailyWageExact);
 
-            // 최종 퇴직금
             const finalRetirement = Math.max(avgRetirement, ordinaryRetirement);
 
             // 결과 표시
-            displayResults({
-                totalBaseSalary,
-                totalBonus,
-                totalAnnualLeave,
-                avgDailyWage,
-                avgRetirement,
-                ordinaryDailyWage,
-                ordinaryRetirement,
-                finalRetirement
-            });
-        }
-
-        // 결과 표시
-        function displayResults(data) {
-            document.getElementById('totalBaseSalary').textContent = formatMoney(data.totalBaseSalary);
-            document.getElementById('totalBonus').textContent = formatMoney(data.totalBonus);
-            document.getElementById('totalAnnualLeave').textContent = formatMoney(data.totalAnnualLeave);
-            
-            // 1일 평균임금과 통상임금은 소수점 둘째자리에서 내림 처리
-            document.getElementById('avgDailyWage').textContent = formatDailyWage(data.avgDailyWage);
-            document.getElementById('ordinaryDailyWage').textContent = formatDailyWage(data.ordinaryDailyWage);
-            
-            document.getElementById('avgRetirement').textContent = formatMoney(data.avgRetirement);
-            document.getElementById('ordinaryRetirement').textContent = formatMoney(data.ordinaryRetirement);
-            document.getElementById('finalRetirement').textContent = formatMoney(data.finalRetirement);
+            document.getElementById('totalBaseSalary').textContent = formatMoney(totalBaseSalary);
+            document.getElementById('totalBonus').textContent = formatMoney(totalBonus);
+            document.getElementById('totalAnnualLeave').textContent = formatMoney(totalAnnualLeave);
+            document.getElementById('avgDailyWage').textContent = formatDailyWage(avgDailyWageExact);
+            document.getElementById('avgRetirement').textContent = formatMoney(avgRetirement);
+            document.getElementById('ordinaryDailyWage').textContent = formatDailyWage(ordinaryDailyWageExact);
+            document.getElementById('ordinaryRetirement').textContent = formatMoney(ordinaryRetirement);
+            document.getElementById('finalRetirement').textContent = formatMoney(finalRetirement);
 
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 일반 금액 포맷팅
         function formatMoney(amount) {
             return Math.round(amount).toLocaleString('ko-KR') + '원';
         }
 
-        // 일일 임금 포맷팅 (수동 문자열 생성으로 정확한 표시)
         function formatDailyWage(amount) {
-            // 소수점 둘째자리에서 내림
-            const truncated = Math.floor(amount * 100) / 100;
-            
-            // 수동으로 문자열 포맷팅
-            const integerPart = Math.floor(truncated);
-            const decimalPart = Math.round((truncated - integerPart) * 100);
+            // 소수점 둘째자리에서 내림 처리된 값을 정확히 표시
+            const integerPart = Math.floor(amount);
+            const decimalPart = Math.round((amount - integerPart) * 100);
             
             const formattedInteger = integerPart.toLocaleString('ko-KR');
             const formattedDecimal = decimalPart.toString().padStart(2, '0');
